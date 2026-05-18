@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Câu Cá Vạn Cân - Tường Vân 18 Điếu</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #07161b, #1b4965, #62b6cb);
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            margin: 0;
+            user-select: none;
+        }
+        .container {
+            max-width: 650px;
+            margin: 10px auto;
+            background: rgba(10, 25, 30, 0.85);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            border: 2px solid #62b6cb;
+        }
+        h1 { color: #ffd700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.6); margin-bottom: 5px; font-size: 28px;}
+        
+        .stats p { margin: 8px 0; font-size: 15px; }
+        .highlight { color: #ffd700; font-weight: bold; }
+        .weight-highlight { color: #ff4d4d; font-weight: bold; font-size: 18px; }
+
+        /* Boss Area */
+        .boss-section {
+            background: rgba(214, 40, 40, 0.15);
+            border: 2px solid #d62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+        }
+        .hp-bar-bg { width: 100%; background: #111; border-radius: 5px; overflow: hidden; margin-bottom: 15px; border: 1px solid #444;}
+        .hp-bar-fill { height: 15px; background: #ff4d4d; width: 100%; transition: width 0.1s linear; }
+        
+        /* Minigame UI */
+        .minigame-container {
+            width: 100%; height: 40px; background: #222; border: 2px solid #ffd700;
+            border-radius: 8px; position: relative; overflow: hidden; margin: 10px 0;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+        #fish-zone {
+            position: absolute; height: 100%; width: 60px;
+            background: rgba(255, 77, 77, 0.6); left: 50%;
+            border-left: 2px solid #ff4d4d; border-right: 2px solid #ff4d4d;
+        }
+        #player-cursor {
+            position: absolute; height: 100%; width: 15px; background: #00ff00;
+            left: 10%; border-radius: 4px; box-shadow: 0 0 10px #00ff00;
+        }
+        .timer { font-size: 18px; color: #ffb703; font-weight: bold; }
+
+        /* Scrollable Skill Grids */
+        .grid-skills { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
+            gap: 8px; 
+            margin-top: 15px;
+            max-height: 220px; 
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        /* Tùy chỉnh thanh cuộn cho đẹp */
+        .grid-skills::-webkit-scrollbar { width: 6px; }
+        .grid-skills::-webkit-scrollbar-track { background: #111; border-radius: 10px;}
+        .grid-skills::-webkit-scrollbar-thumb { background: #62b6cb; border-radius: 10px;}
+
+        .skill-btn {
+            background: linear-gradient(45deg, #2b1031, #5d1a6b); color: white;
+            border: 1px solid #b768c9; padding: 8px 4px; font-size: 12px;
+            font-weight: bold; border-radius: 6px; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .skill-btn:disabled { background: #222; color: #666; border-color: #444; cursor: not-allowed; box-shadow: none;}
+        .skill-drop { background: linear-gradient(45deg, #7f0000, #b71c1c); border-color: #ff5252;}
+
+        button.action {
+            background: linear-gradient(45deg, #0077b6, #0096c7); color: white;
+            border: none; padding: 12px 24px; font-size: 16px; font-weight: bold;
+            border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px;
+        }
+        button.action:hover { filter: brightness(1.2); }
+        
+        /* Shop UI */
+        .shop-section {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid #62b6cb;
+            padding: 15px; border-radius: 10px; margin-top: 20px;
+        }
+        .shop-section h3 { margin-top: 0; color: #bee9e8; border-bottom: 1px solid #62b6cb; padding-bottom: 5px; font-size: 18px;}
+        button.upgrade { background: #2c7a7b; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; margin-bottom: 10px; font-weight: bold;}
+        button.upgrade:disabled { background: #333; color: #777; }
+        
+        .shop-skill { background: #b08d57; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 11px;}
+        .shop-skill:disabled { background: #333; color: #666; cursor: not-allowed; }
+        .shop-drop-info { background: #1a1a1a; color: #ff8a80; border: 1px dashed #ff5252; padding: 6px; border-radius: 4px; font-size: 11px; cursor: default;}
+
+        #control-pad {
+            width: 100%; height: 70px; background: rgba(0, 255, 0, 0.1);
+            border: 2px dashed #00ff00; border-radius: 10px; margin-top: 15px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: #00ff00; cursor: pointer; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>CÂU CÁ VẠN CÂN</h1>
+    
+    <div class="stats">
+        <p>⚖️ Kỷ Lục: <span id="tong-can" class="weight-highlight">0</span> Cân | 💰 Linh Thạch: <span id="linh-thach" class="highlight">0</span></p>
+    </div>
+
+    <button class="action" id="search-btn" onclick="searchFish()">Quăng Cần Tầm Bảo (Tìm Cá)</button>
+
+    <div class="shop-section" id="shop-area">
+        <h3>Thương Hội & Tường Vân 18 Điếu</h3>
+        <button class="upgrade" id="buy-rod-btn" onclick="nangCapCan()">Rèn Cần: <span id="rod-name">---</span> (<span id="rod-cost">0</span> LT)</button>
+        
+        <div class="grid-skills" id="shop-skills-container">
+            </div>
+    </div>
+
+    <div id="boss-area" class="boss-section">
+        <h2 style="margin-top:0; color:#ff4d4d; font-size:20px;">⚠️ <span id="boss-name">Thủy Quái</span> CẮN CÂU!</h2>
+        
+        <div class="hp-bar-bg"><div id="boss-hp-bar" class="hp-bar-fill"></div></div>
+        <p style="margin:5px 0;">Sinh Lực: <span id="boss-hp">0</span> / <span id="boss-max-hp">0</span></p>
+        <p class="timer" style="margin:5px 0;">Thời gian: <span id="time-left">30</span>s</p>
+
+        <div class="minigame-container" id="minigame-box">
+            <div id="fish-zone"></div>
+            <div id="player-cursor"></div>
+        </div>
+
+        <div class="grid-skills" id="combat-skills-container">
+            </div>
+
+        <div id="control-pad">NHẤN GIỮ ĐỂ KÉO CẦN LÊN</div>
+    </div>
+</div>
+
+<script>
+    // --- GAME STATE & 18 SKILLS ---
+    let game = {
+        linhThach: 0,
+        tongCan: 0,
+        rodIndex: 0,
+        rods: [
+            { name: "Cốt Tre", cost: 0, power: 10 },
+            { name: "Huyền Thiết", cost: 200, power: 45 },
+            { name: "Long Gân", cost: 1200, power: 200 },
+            { name: "Thần Thủy", cost: 8000, power: 800 }
+        ],
+        skills: {
+            // Nhóm Thương Hội (1-14)
+            1: { name: "1. Thanh Phong", desc: "-5% HP", cost: 100, unlocked: false, isDrop: false },
+            2: { name: "2. Lạc Diệp", desc: "Cá chậm 20% (3s)", cost: 300, unlocked: false, isDrop: false },
+            3: { name: "3. Phi Trần", desc: "+3s Giây", cost: 600, unlocked: false, isDrop: false },
+            4: { name: "4. Lưu Thủy", desc: "X1.5 Vùng (3s)", cost: 1000, unlocked: false, isDrop: false },
+            5: { name: "5. Phá Lãng", desc: "-10% HP", cost: 1500, unlocked: false, isDrop: false },
+            6: { name: "6. Ngưng Băng", desc: "Choáng (2s)", cost: 2200, unlocked: false, isDrop: false },
+            7: { name: "7. Cuồng Phong", desc: "X2 Vùng (4s)", cost: 3000, unlocked: false, isDrop: false },
+            8: { name: "8. Hám Địa", desc: "-15% HP", cost: 4200, unlocked: false, isDrop: false },
+            9: { name: "9. Hấp Tinh", desc: "Rút 5% HP/5s", cost: 5500, unlocked: false, isDrop: false },
+            10: { name: "10. Ảo Ảnh", desc: "Auto-Kéo (2s)", cost: 7000, unlocked: false, isDrop: false },
+            11: { name: "11. Kinh Lôi", desc: "Choáng (4s)", cost: 9000, unlocked: false, isDrop: false },
+            12: { name: "12. Trục Nhật", desc: "+8s Giây", cost: 12000, unlocked: false, isDrop: false },
+            13: { name: "13. Tịch Diệt", desc: "-20% HP", cost: 16000, unlocked: false, isDrop: false },
+            14: { name: "14. Huyết Hải", desc: "-10s Đổi 25% HP", cost: 22000, unlocked: false, isDrop: false },
+            
+            // Nhóm Tuyệt Học - Boss Drop (15-18)
+            15: { name: "15. Long Ngâm", desc: "Choáng 3s & -10% HP", cost: 0, unlocked: false, isDrop: true, dropSource: "Cá Chép Tinh" },
+            16: { name: "16. Quy Tức", desc: "Cá chậm 60% (6s)", cost: 0, unlocked: false, isDrop: true, dropSource: "Thạch Quy" },
+            17: { name: "17. Kình Thôn", desc: "Rút 15% HP/5s", cost: 0, unlocked: false, isDrop: true, dropSource: "Hắc Kình" },
+            18: { name: "18. Tường Vân", desc: "Auto 5s & +5s", cost: 0, unlocked: false, isDrop: true, dropSource: "Thôn Thiên" }
+        }
+    };
+
+    const bossList = [
+        { name: "Cá Chép Tinh", hp: 600, reward: 250, dropId: 15, dropChance: 0.30 }, // 30% rớt Long Ngâm
+        { name: "Thạch Quy Ngàn Cân", hp: 2500, reward: 1200, dropId: 16, dropChance: 0.25 }, // 25% rớt Quy Tức
+        { name: "Hắc Hải Kình Ngư", hp: 10000, reward: 4500, dropId: 17, dropChance: 0.20 }, // 20% rớt Kình Thôn
+        { name: "Thôn Thiên Ma Thú", hp: 45000, reward: 25000, dropId: 18, dropChance: 0.15 } // 15% rớt Tường Vân
+    ];
+
+    // --- MINIGAME STATE ---
+    let isFighting = false;
+    let minigameLoopId, minigameTimerId;
+    let currentBoss = {};
+    let timeLeft = 30;
+    let containerWidth = 0;
+    
+    let cursorX = 0, cursorVelocity = 0, isPulling = false;
+    let zoneX = 0, zoneSpeed = 0, zoneDirection = 1, zoneWidth = 60, baseZoneSpeed = 0;
+
+    // Trạng thái hiệu ứng (Status Effects)
+    let isFishStunned = false;
+    let slowMultiplier = 1; // 1 = Bình thường
+    let isAutoAiming = false;
+    let dotDamagePerFrame = 0; 
+    let dotFramesLeft = 0;
+
+    let skillsOnCooldown = {}; 
+
+    const cursorEl = document.getElementById('player-cursor');
+    const zoneEl = document.getElementById('fish-zone');
+    const controlPad = document.getElementById('control-pad');
+
+    function startPull(e) { if(e) e.preventDefault(); isPulling = true; controlPad.style.background = "rgba(0,255,0,0.3)"; }
+    function endPull(e) { if(e) e.preventDefault(); isPulling = false; controlPad.style.background = "rgba(0,255,0,0.1)"; }
+    
+    controlPad.addEventListener('mousedown', startPull);
+    controlPad.addEventListener('mouseup', endPull);
+    controlPad.addEventListener('mouseleave', endPull);
+    controlPad.addEventListener('touchstart', startPull, {passive: false});
+    controlPad.addEventListener('touchend', endPull);
+
+    // --- RENDER UI ĐỘNG CHO 18 KỸ NĂNG ---
+    function renderSkillsUI() {
+        let shopHtml = '';
+        let combatHtml = '';
+
+        for (let i = 1; i <= 18; i++) {
+            let skill = game.skills[i];
+            
+            // Build Shop
+            if (skill.isDrop) {
+                if (skill.unlocked) {
+                    shopHtml += `<button class="shop-drop-info" style="background:#2c7a7b; color:white;">Đã Ngộ: ${skill.name}</button>`;
+                } else {
+                    shopHtml += `<div class="shop-drop-info">Ẩn Dấu: Giết [${skill.dropSource}]</div>`;
+                }
+            } else {
+                if (skill.unlocked) {
+                    shopHtml += `<button class="shop-skill" disabled>Đã Mua: ${skill.name}</button>`;
+                } else {
+                    shopHtml += `<button class="shop-skill" id="shop-skill-${i}" onclick="buySkill(${i})">${skill.name} (${skill.cost} LT)</button>`;
+                }
+            }
+
+            // Build Combat (Chỉ hiển thị khi đã học)
+            if (skill.unlocked) {
+                let extraClass = skill.isDrop ? "skill-drop" : "";
+                combatHtml += `<button class="skill-btn ${extraClass}" id="skill-${i}" onclick="useSkill(${i})">
+                                ${skill.name}<br><span style="font-weight:normal;">${skill.desc}</span>
+                               </button>`;
+            }
+        }
+        document.getElementById('shop-skills-container').innerHTML = shopHtml;
+        document.getElementById('combat-skills-container').innerHTML = combatHtml;
+    }
+
+    // --- CORE LOGIC ---
+    function searchFish() {
+        if(isFighting) return;
+        let rod = game.rods[game.rodIndex];
+        
+        if (Math.random() < 0.3) {
+            startBossFight();
+        } else {
+            let caThuong = Math.floor(Math.random() * 6 + 1) * rod.power;
+            game.linhThach += caThuong * 2;
+            game.tongCan += caThuong;
+            updateIdleUI();
+        }
+    }
+
+    function startBossFight() {
+        isFighting = true;
+        document.getElementById('search-btn').style.display = "none";
+        document.getElementById('shop-area').style.display = "none";
+        document.getElementById('boss-area').style.display = "block";
+        
+        containerWidth = document.getElementById('minigame-box').clientWidth;
+
+        let index = Math.min(game.rodIndex, bossList.length - 1);
+        let b = bossList[index];
+        currentBoss = { name: b.name, hp: b.hp, maxHp: b.hp, reward: b.reward, dropId: b.dropId, dropChance: b.dropChance };
+        
+        timeLeft = 30;
+        cursorX = 10; cursorVelocity = 0;
+        zoneX = containerWidth / 2; zoneWidth = 60;
+        
+        // Reset Effect States
+        isFishStunned = false; slowMultiplier = 1; isAutoAiming = false; 
+        dotDamagePerFrame = 0; dotFramesLeft = 0;
+        skillsOnCooldown = {};
+
+        let rod = game.rods[game.rodIndex];
+        baseZoneSpeed = (currentBoss.maxHp / rod.power) * 0.15;
+        if(baseZoneSpeed > 8) baseZoneSpeed = 8; 
+        if(baseZoneSpeed < 1.5) baseZoneSpeed = 1.5;
+
+        renderSkillsUI();
+        updateBossUI();
+        minigameTimerId = setInterval(countdown, 1000);
+        minigameLoopId = requestAnimationFrame(gameLoop);
+    }
+
+    function countdown() {
+        timeLeft--;
+        document.getElementById('time-left').innerText = timeLeft;
+        if (timeLeft <= 0) endFight(false);
+    }
+
+    function gameLoop() {
+        if(!isFighting) return;
+
+        let maxCursorX = containerWidth - 15;
+        let maxZoneX = containerWidth - zoneWidth;
+
+        // Auto-Aim Logic
+        if (isAutoAiming) {
+            cursorX = zoneX + (zoneWidth / 2) - 7.5;
+            cursorVelocity = 0;
+        } else {
+            if (isPulling) cursorVelocity += 0.5;
+            else cursorVelocity -= 0.5;
+            
+            cursorVelocity *= 0.9;
+            cursorX += cursorVelocity;
+            
+            if (cursorX < 0) { cursorX = 0; cursorVelocity = 0; }
+            if (cursorX > maxCursorX) { cursorX = maxCursorX; cursorVelocity = 0; }
+        }
+
+        // Move Fish Logic
+        if (!isFishStunned) {
+            zoneSpeed = baseZoneSpeed * slowMultiplier;
+            if (Math.random() < 0.02) zoneDirection *= -1;
+            zoneX += zoneSpeed * zoneDirection;
+            
+            if (zoneX < 0) { zoneX = 0; zoneDirection = 1; }
+            if (zoneX > maxZoneX) { zoneX = maxZoneX; zoneDirection = -1; }
+        }
+
+        // DoT Logic
+        if (dotFramesLeft > 0) {
+            currentBoss.hp -= dotDamagePerFrame;
+            dotFramesLeft--;
+        }
+
+        // Damage Logic (Cursor inside zone)
+        let cursorCenter = cursorX + 7.5;
+        if (cursorCenter >= zoneX && cursorCenter <= zoneX + zoneWidth) {
+            let rod = game.rods[game.rodIndex];
+            currentBoss.hp -= (rod.power * 0.05);
+            cursorEl.style.background = "#fff";
+            zoneEl.style.background = "rgba(0, 255, 0, 0.5)";
+        } else {
+            cursorEl.style.background = isAutoAiming ? "#fff" : "#00ff00";
+            zoneEl.style.background = "rgba(255, 77, 77, 0.6)";
+        }
+
+        cursorEl.style.left = cursorX + "px";
+        zoneEl.style.left = zoneX + "px";
+        zoneEl.style.width = zoneWidth + "px";
+        
+        updateBossUI();
+
+        if (currentBoss.hp <= 0) endFight(true);
+        else minigameLoopId = requestAnimationFrame(gameLoop);
+    }
+
+    function endFight(win) {
+        isFighting = false;
+        cancelAnimationFrame(minigameLoopId);
+        clearInterval(minigameTimerId);
+        
+        document.getElementById('search-btn').style.display = "block";
+        document.getElementById('shop-area').style.display = "block";
+        document.getElementById('boss-area').style.display = "none";
+
+        if (win) {
+            game.linhThach += currentBoss.reward;
+            game.tongCan += currentBoss.maxHp;
+            let alertMsg = `Khuất phục thành công ${currentBoss.name} (${currentBoss.maxHp} Cân)!\n`;
+            
+            // DROP LOGIC
+            if (currentBoss.dropId && !game.skills[currentBoss.dropId].unlocked) {
+                if (Math.random() < currentBoss.dropChance) {
+                    game.skills[currentBoss.dropId].unlocked = true;
+                    alertMsg += `\n🌟 KỲ NGỘ: Lĩnh ngộ thành công [${game.skills[currentBoss.dropId].name}] từ Boss!`;
+                }
+            }
+            alert(alertMsg);
+        } else {
+            alert(`Đứt dây! ${currentBoss.name} đã tẩu thoát...`);
+        }
+        updateIdleUI();
+    }
+
+    // --- HỆ THỐNG XỬ LÝ 18 CHIÊU THỨC ---
+    // Các hàm Helper để code gọn hơn
+    function applyBurst(pct) { currentBoss.hp -= currentBoss.maxHp * pct; }
+    function applyStun(ms) { isFishStunned = true; setTimeout(() => { isFishStunned = false; }, ms); }
+    function applySlow(mult, ms) { slowMultiplier = mult; setTimeout(() => { slowMultiplier = 1; }, ms); }
+    function addTime(secs) { timeLeft += secs; document.getElementById('time-left').innerText = timeLeft; }
+    function widenZone(mult, ms) { zoneWidth = 60 * mult; setTimeout(() => { zoneWidth = 60; }, ms); }
+    function applyAutoAim(ms) { isAutoAiming = true; setTimeout(() => { isAutoAiming = false; }, ms); }
+    function applyDoT(pct, secs) { 
+        dotFramesLeft = secs * 60; 
+        dotDamagePerFrame = (currentBoss.maxHp * pct) / dotFramesLeft; 
+    }
+
+    function useSkill(id) {
+        if(!isFighting || !game.skills[id].unlocked || skillsOnCooldown[id]) return;
+        
+        // Check đòn Huyết Hải (Id 14)
+        if (id === 14) {
+            if (timeLeft <= 10) { alert("Không đủ Sinh Lực (Thời gian) để hiến tế!"); return; }
+            addTime(-10);
+            applyBurst(0.25);
+        } else {
+            // Xử lý các đòn khác
+            if (id === 1) applyBurst(0.05);
+            else if (id === 2) applySlow(0.8, 3000); // Giảm 20% tốc (còn 80%)
+            else if (id === 3) addTime(3);
+            else if (id === 4) widenZone(1.5, 3000);
+            else if (id === 5) applyBurst(0.10);
+            else if (id === 6) applyStun(2000);
+            else if (id === 7) widenZone(2, 4000);
+            else if (id === 8) applyBurst(0.15);
+            else if (id === 9) applyDoT(0.05, 5);
+            else if (id === 10) applyAutoAim(2000);
+            else if (id === 11) applyStun(4000);
+            else if (id === 12) addTime(8);
+            else if (id === 13) applyBurst(0.20);
+            else if (id === 15) { applyStun(3000); applyBurst(0.10); } // Long Ngâm
+            else if (id === 16) applySlow(0.4, 6000); // Giảm 60% tốc (còn 40%) - Quy Tức
+            else if (id === 17) applyDoT(0.15, 5); // Kình Thôn
+            else if (id === 18) { applyAutoAim(5000); addTime(5); } // Tường Vân
+        }
+
+        // Khóa kỹ năng đã dùng
+        skillsOnCooldown[id] = true;
+        let btn = document.getElementById(`skill-${id}`);
+        if(btn) btn.disabled = true;
+    }
+
+    function buySkill(id) {
+        let skill = game.skills[id];
+        if (!skill.unlocked && game.linhThach >= skill.cost) {
+            game.linhThach -= skill.cost;
+            skill.unlocked = true;
+            updateIdleUI();
+        }
+    }
+
+    function nangCapCan() {
+        let nextRod = game.rods[game.rodIndex + 1];
+        if (nextRod && game.linhThach >= nextRod.cost) {
+            game.linhThach -= nextRod.cost;
+            game.rodIndex++;
+            updateIdleUI();
+        }
+    }
+
+    // --- UI UPDATES ---
+    function updateIdleUI() {
+        document.getElementById('linh-thach').innerText = Math.floor(game.linhThach);
+        document.getElementById('tong-can').innerText = Math.floor(game.tongCan);
+        
+        if(game.rodIndex < game.rods.length - 1) {
+            let nextRod = game.rods[game.rodIndex + 1];
+            document.getElementById('rod-name').innerText = nextRod.name;
+            document.getElementById('rod-cost').innerText = nextRod.cost;
+            document.getElementById('buy-rod-btn').disabled = game.linhThach < nextRod.cost;
+        } else {
+            document.getElementById('buy-rod-btn').innerText = "Đã Đạt Cực Hạn Cần";
+            document.getElementById('buy-rod-btn').disabled = true;
+        }
+
+        renderSkillsUI();
+
+        // Cập nhật trạng thái nút mua
+        for(let i=1; i<=18; i++) {
+            let skill = game.skills[i];
+            if (!skill.isDrop && !skill.unlocked) {
+                let btn = document.getElementById(`shop-skill-${i}`);
+                if(btn) btn.disabled = game.linhThach < skill.cost;
+            }
+        }
+    }
+
+    function updateBossUI() {
+        document.getElementById('boss-name').innerText = currentBoss.name;
+        document.getElementById('boss-hp').innerText = Math.max(0, Math.floor(currentBoss.hp));
+        document.getElementById('boss-max-hp').innerText = currentBoss.maxHp;
+        
+        let pct = (currentBoss.hp / currentBoss.maxHp) * 100;
+        if(pct < 0) pct = 0;
+        document.getElementById('boss-hp-bar').style.width = pct + "%";
+    }
+
+    updateIdleUI();
+</script>
+
+</body>
+</html>
