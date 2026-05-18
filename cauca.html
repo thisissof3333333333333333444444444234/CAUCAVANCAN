@@ -136,7 +136,6 @@
         bossReward: 0
     };
 
-    // Danh sách Siêu Cự Vật chuẩn tiêu đề "Câu Cá Vạn Cân"
     const bossList = [
         { name: "Thạch Quy Ngàn Cân", hp: 1200, reward: 600 },
         { name: "Hắc Hải Kình Ngư (5 Ngàn Cân)", hp: 6000, reward: 3200 },
@@ -145,6 +144,7 @@
     ];
 
     function updateUI() {
+        // Đã sửa chính xác các ID gọi từ HTML
         document.getElementById('linh-thach').innerText = game.linhThach;
         document.getElementById('ngo-tinh').innerText = game.ngoTinh;
         document.getElementById('tong-can').innerText = game.tongCan;
@@ -239,7 +239,6 @@
         }
     }
 
-    // Cơ chế Idle tự động vận công ghì cá liên tục
     setInterval(function() {
         let passiveIncome = game.vanCanTramLevel * 8;
         if (passiveIncome > 0 && !game.isBossActive) {
