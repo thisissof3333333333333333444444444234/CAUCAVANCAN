@@ -38,17 +38,18 @@
             border-radius: 10px;
             margin: 15px 0;
             display: none;
+            transition: background 0.1s ease, border-color 0.1s ease;
         }
 
-        /* NEW TUG OF WAR UI */
+        /* TUG OF WAR UI */
         .tug-container {
             width: 100%; height: 35px; background: #222; border: 2px solid #ffd700;
             border-radius: 8px; position: relative; overflow: hidden; margin: 15px 0;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
             display: flex;
         }
-        .side-boss { width: 50%; height: 100%; background: rgba(214, 40, 40, 0.4); text-align: left; padding-left: 10px; line-height: 35px; font-size: 12px; color: #ff8a80;}
-        .side-player { width: 50%; height: 100%; background: rgba(0, 180, 216, 0.4); text-align: right; padding-right: 10px; line-height: 35px; font-size: 12px; color: #90e0ef;}
+        .side-boss { width: 50%; height: 100%; background: rgba(214, 40, 40, 0.2); text-align: left; padding-left: 10px; line-height: 35px; font-size: 12px; color: #ff8a80;}
+        .side-player { width: 50%; height: 100%; background: rgba(0, 180, 216, 0.2); text-align: right; padding-right: 10px; line-height: 35px; font-size: 12px; color: #90e0ef;}
         
         #tug-line {
             position: absolute; height: 100%; width: 6px; background: #fff;
@@ -58,6 +59,16 @@
         }
 
         .timer { font-size: 20px; color: #ffb703; font-weight: bold; margin: 5px 0;}
+
+        /* Equipped Slots UI */
+        .equipped-bar {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed #ffd700;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .equipped-title { font-size: 13px; color: #ffd700; margin-bottom: 5px; font-weight: bold; }
 
         /* Scrollable Skill Grids */
         .grid-skills { 
@@ -77,9 +88,11 @@
             background: linear-gradient(45deg, #2b1031, #5d1a6b); color: white;
             border: 1px solid #b768c9; padding: 8px 4px; font-size: 12px;
             font-weight: bold; border-radius: 6px; cursor: pointer;
+            position: relative;
         }
-        .skill-btn:disabled { background: #222; color: #666; border-color: #444; cursor: not-allowed; }
+        .skill-btn:disabled { background: #222 !important; color: #666 !important; border-color: #444 !important; cursor: not-allowed; }
         .skill-drop { background: linear-gradient(45deg, #7f0000, #b71c1c); border-color: #ff5252;}
+        .key-bind { position: absolute; top: -5px; left: -5px; background: #ffd700; color: #000; font-size: 9px; padding: 1px 4px; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 
         button.action {
             background: linear-gradient(45deg, #0077b6, #0096c7); color: white;
@@ -95,10 +108,12 @@
         }
         .shop-section h3 { margin-top: 0; color: #bee9e8; border-bottom: 1px solid #62b6cb; padding-bottom: 5px; font-size: 18px;}
         button.upgrade { background: #2c7a7b; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; margin-bottom: 10px; font-weight: bold;}
+        button.upgrade:disabled { background: #333 !important; color: #777 !important; cursor: not-allowed; border: 1px solid #222; }
         
         .shop-skill { background: #b08d57; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 11px;}
         .shop-skill:disabled { background: #333; color: #666; cursor: not-allowed; }
-        .shop-drop-info { background: #1a1a1a; color: #ff8a80; border: 1px dashed #ff5252; padding: 6px; border-radius: 4px; font-size: 11px; cursor: default;}
+        .shop-skill.equipped-active { background: #00b4d8; border: 1px solid #fff; font-weight: bold; }
+        .shop-drop-info { background: #1a1a1a; color: #ff8a80; border: 1px dashed #ff5252; padding: 6px; border-radius: 4px; font-size: 11px; cursor: pointer;}
 
         /* CLICK BUTTON FOR TUG OF WAR */
         #pull-btn {
@@ -107,6 +122,7 @@
             font-size: 22px; color: #fff; cursor: pointer; font-weight: bold;
             text-shadow: 0 2px 4px rgba(0,0,0,0.4);
             box-shadow: 0 5px 15px rgba(251, 133, 0, 0.4);
+            transition: background 0.1s ease;
         }
         #pull-btn:active { transform: scale(0.98); filter: brightness(0.9); }
     </style>
@@ -126,6 +142,12 @@
         <h3>Thương Hội & Tường Vân 18 Điếu</h3>
         <button class="upgrade" id="buy-rod-btn" onclick="nangCapCan()">Rèn Cần: <span id="rod-name">---</span> (<span id="rod-cost">0</span> LT)</button>
         
+        <div class="equipped-bar">
+            <div class="equipped-title">🎒 KỸ NĂNG ĐANG TRANG BỊ (TỐI ĐA 4CHIÊU)</div>
+            <div style="font-size: 11px; color:#aaa; margin-bottom: 5px;">(Bấm vào kỹ năng đã học ở dưới để Trang bị / Tháo ra)</div>
+            <div id="equipped-slots-text" style="font-weight: bold; color: #00b4d8; font-size: 13px;">Trống</div>
+        </div>
+
         <div class="grid-skills" id="shop-skills-container">
             </div>
     </div>
@@ -154,14 +176,14 @@
         linhThach: 0,
         tongCan: 0,
         rodIndex: 0,
+        equippedSkills: [], // Chứa tối đa 4 ID kỹ năng được kích hoạt
         rods: [
-            { name: "Cốt Tre (Lực +10)", cost: 0, clickPower: 1.5 },
-            { name: "Huyền Thiết (Lực +30)", cost: 300, clickPower: 3.5 },
-            { name: "Long Gân (Lực +80)", cost: 1500, clickPower: 7.0 },
-            { name: "Thần Thủy (Lực +200)", cost: 10000, clickPower: 15.0 }
+            { name: "Cốt Tre (Lực +1.5)", cost: 0, clickPower: 1.5 },
+            { name: "Huyền Thiết (Lực +3.5)", cost: 300, clickPower: 3.5 },
+            { name: "Long Gân (Lực +7.0)", cost: 1500, clickPower: 7.0 },
+            { name: "Thần Thủy (Lực +15.0)", cost: 10000, clickPower: 15.0 }
         ],
         skills: {
-            // Hệ thống 18 thức Tường Vân Điếu Pháp
             1: { name: "1. Thanh Phong", desc: "Đẩy vạch +3%", cost: 150, unlocked: false, isDrop: false },
             2: { name: "2. Lạc Diệp", desc: "Giảm lực Boss 3s", cost: 400, unlocked: false, isDrop: false },
             3: { name: "3. Phi Trần", desc: "+3 giây", cost: 800, unlocked: false, isDrop: false },
@@ -177,7 +199,6 @@
             13: { name: "13. Tịch Diệt", desc: "Đẩy vạch +20%", cost: 45000, unlocked: false, isDrop: false },
             14: { name: "14. Huyết Hải", desc: "Đẩy +30% (-5s)", cost: 60000, unlocked: false, isDrop: false },
             
-            // 4 Tuyệt học cuối rớt từ Boss với tỷ lệ cực thấp (5% -> 1%)
             15: { name: "15. Long Ngâm", desc: "Đẩy +15% & Choáng 2s", cost: 0, unlocked: false, isDrop: true, dropSource: "Cá Chép Tinh" },
             16: { name: "16. Quy Tức", desc: "Boss yếu 80% (6s)", cost: 0, unlocked: false, isDrop: true, dropSource: "Thạch Quy" },
             17: { name: "17. Kình Thôn", desc: "Đẩy +25%", cost: 0, unlocked: false, isDrop: true, dropSource: "Hắc Kình" },
@@ -186,68 +207,112 @@
     };
 
     const bossList = [
-        { name: "Cá Chép Tinh", bossPower: 0.25, reward: 500, weight: 600, dropId: 15, dropChance: 0.05 },     // 5% Rớt
-        { name: "Thạch Quy Ngàn Cân", bossPower: 0.45, reward: 2000, weight: 2500, dropId: 16, dropChance: 0.03 }, // 30% -> 3% Rớt
-        { name: "Hắc Hải Kình Ngư", bossPower: 0.75, reward: 6000, weight: 10000, dropId: 17, dropChance: 0.02 },  // 2% Rớt
-        { name: "Thôn Thiên Ma Thú", bossPower: 1.30, reward: 30000, weight: 50000, dropId: 18, dropChance: 0.01 } // 1% Rớt cực hiếm!
+        { name: "Cá Chép Tinh", bossPower: 0.25, reward: 500, weight: 600, dropId: 15, dropChance: 0.05 },     
+        { name: "Thạch Quy Ngàn Cân", bossPower: 0.45, reward: 2000, weight: 2500, dropId: 16, dropChance: 0.03 }, 
+        { name: "Hắc Hải Kình Ngư", bossPower: 0.75, reward: 6000, weight: 10000, dropId: 17, dropChance: 0.02 },  
+        { name: "Thôn Thiên Ma Thú", bossPower: 1.30, reward: 30000, weight: 50000, dropId: 18, dropChance: 0.01 } 
     ];
 
     // --- BIẾN ĐIỀU KHIỂN TRẬN ĐẤU ---
     let isFighting = false;
-    let tugPosition = 50; // Vị trí vạch (50% là ở giữa)
-    let timeLeft = 20;    // Trận đấu Boss chỉ có 20 giây để dứt điểm
+    let tugPosition = 50; 
+    let timeLeft = 20;    
     let loopId, timerId;
     let currentBoss = {};
     
-    // Trạng thái hiệu ứng kỹ năng
     let bossStunned = false;
-    let bossWeakened = false;
     let bossWeakMultiplier = 1;
-
     let skillsOnCooldown = {};
 
+    // --- HIỂN THỊ DANH SÁCH CHIÊU THỨC ---
     function renderSkillsUI() {
         let shopHtml = '';
         let combatHtml = '';
 
+        // Hiển thị ở Thương Hội công cụ quản lý / mua / trang bị
         for (let i = 1; i <= 18; i++) {
             let skill = game.skills[i];
+            let isEquipped = game.equippedSkills.includes(i);
             
             if (skill.isDrop) {
                 if (skill.unlocked) {
-                    shopHtml += `<button class="shop-drop-info" style="background:#2c7a7b; color:white;">Đã Ngộ: ${skill.name}</button>`;
+                    let eqClass = isEquipped ? "equipped-active" : "";
+                    shopHtml += `<button class="shop-skill ${eqClass}" onclick="toggleEquip(${i})">${isEquipped ? "⚡ Mặc: " : "⭐ "}${skill.name}</button>`;
                 } else {
-                    shopHtml += `<div class="shop-drop-info">Tỷ lệ ${(bossList[i-15].dropChance*100)}%: Giết [${skill.dropSource}]</div>`;
+                    shopHtml += `<div class="shop-drop-info" onclick="alert('Hãy diệt [${skill.dropSource}] để tìm tuyệt học này!')">🔒 ${skill.name} (${bossList[i-15].dropChance*100}%)</div>`;
                 }
             } else {
                 if (skill.unlocked) {
-                    shopHtml += `<button class="shop-skill" disabled>Đã Mua: ${skill.name}</button>`;
+                    let eqClass = isEquipped ? "equipped-active" : "";
+                    shopHtml += `<button class="shop-skill ${eqClass}" onclick="toggleEquip(${i})">${isEquipped ? "⚡ Mặc: " : "✔ "}${skill.name}</button>`;
                 } else {
-                    shopHtml += `<button class="shop-skill" id="shop-skill-${i}" onclick="buySkill(${i})">${skill.name} (${skill.cost} LT)</button>`;
+                    shopHtml += `<button class="shop-skill" id="shop-skill-${i}" onclick="buySkill(${i})">🛒 ${skill.name} (${skill.cost} LT)</button>`;
                 }
             }
-
-            if (skill.unlocked) {
-                let extraClass = skill.isDrop ? "skill-drop" : "";
-                combatHtml += `<button class="skill-btn ${extraClass}" id="skill-${i}" onclick="useSkill(${i})">
-                                ${skill.name}<br><span style="font-weight:normal; font-size:10px;">${skill.desc}</span>
-                               </button>`;
-            }
         }
+
+        // Hiển thị 4 ô kỹ năng chiến đấu trong trận Boss nếu đã trang bị
+        for (let idx = 0; idx < game.equippedSkills.length; idx++) {
+            let sId = game.equippedSkills[idx];
+            let skill = game.skills[sId];
+            let extraClass = skill.isDrop ? "skill-drop" : "";
+            
+            combatHtml += `<button class="skill-btn ${extraClass}" id="skill-${sId}" onclick="useSkill(${sId})">
+                            <span class="key-bind">${idx + 1}</span>
+                            ${skill.name}<br><span style="font-weight:normal; font-size:10px;">${skill.desc}</span>
+                           </button>`;
+        }
+
         document.getElementById('shop-skills-container').innerHTML = shopHtml;
         document.getElementById('combat-skills-container').innerHTML = combatHtml;
+
+        // Cập nhật text danh sách kỹ năng đang trang bị công khai
+        if(game.equippedSkills.length > 0) {
+            let names = game.equippedSkills.map(id => game.skills[id].name.split(". ")[1]);
+            document.getElementById('equipped-slots-text').innerText = names.join(" | ");
+        } else {
+            document.getElementById('equipped-slots-text').innerText = "Chưa mang theo chiêu nào (Trống)";
+        }
     }
 
-    // --- CƠ CHẾ QUĂNG CẦN (5% GẶP BOSS) ---
+    // --- TRANG BỊ / THÁO KỸ NĂNG (TỐI ĐA 4 Ô) ---
+    function toggleEquip(id) {
+        if(isFighting) return;
+        let index = game.equippedSkills.indexOf(id);
+        
+        if (index > -1) {
+            // Đang mặc -> Tháo ra
+            game.equippedSkills.splice(index, 1);
+        } else {
+            // Chưa mặc -> Tiến hành mặc
+            if(game.equippedSkills.length >= 4) {
+                alert("Tâm pháp quá tải! Bạn chỉ có thể trang bị tối đa 4 kỹ năng cùng lúc.");
+                return;
+            }
+            game.equippedSkills.push(id);
+        }
+        renderSkillsUI();
+    }
+
+    // LẮNG NGHE PHÍM TẮT 1, 2, 3, 4 ĐỂ DÙNG CHIÊU
+    window.addEventListener('keydown', function(e) {
+        if (!isFighting) return;
+        if (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4') {
+            let slotIndex = parseInt(e.key) - 1;
+            if (slotIndex < game.equippedSkills.length) {
+                let skillId = game.equippedSkills[slotIndex];
+                useSkill(skillId);
+            }
+        }
+    });
+
+    // --- CƠ CHẾ GẶP BOSS (5%) ---
     function searchFish() {
         if(isFighting) return;
         
-        // Tỷ lệ xuất hiện Boss hạ thấp xuống còn 5% (0.05)
         if (Math.random() < 0.05) {
             startBossTugOfWar();
         } else {
-            // Câu cá thường nhanh
-            let currentRod = game.rods[game.rodIndex];
             let caThuong = Math.floor(Math.random() * 20 + 5) * (game.rodIndex + 1);
             game.linhThach += caThuong * 2;
             game.tongCan += caThuong;
@@ -255,22 +320,18 @@
         }
     }
 
-    // --- KHỞI CHẠY TRẬN KÉO CO ---
     function startBossTugOfWar() {
         isFighting = true;
         document.getElementById('search-btn').style.display = "none";
         document.getElementById('shop-area').style.display = "none";
         document.getElementById('boss-area').style.display = "block";
         
-        // Chọn Boss tương ứng cấp độ Cần
         let index = Math.min(game.rodIndex, bossList.length - 1);
-        let b = bossList[index];
-        currentBoss = { ...b };
+        currentBoss = { ...bossList[index] };
         
-        tugPosition = 50; // Reset vạch về giữa
-        timeLeft = 20;    // Reset thời gian
+        tugPosition = 50; 
+        timeLeft = 20;    
         bossStunned = false;
-        bossWeakened = false;
         bossWeakMultiplier = 1;
         skillsOnCooldown = {};
 
@@ -283,48 +344,59 @@
         timerId = setInterval(() => {
             timeLeft--;
             document.getElementById('time-left').innerText = timeLeft;
-            if (timeLeft <= 0) endFight(false); // Hết giờ = Thua
+            if (timeLeft <= 0) endFight(false); 
         }, 1000);
 
         loopId = requestAnimationFrame(bossPullLoop);
     }
 
-    // --- LỰC KÉO TỰ ĐỘNG CỦA BOSS (Chạy theo khung hình) ---
+    // --- VÒNG LẶP BOSS KÉO & ĐỔI MÀU GIAO DIỆN THEO ĐƯỜNG KÉO CO ---
     function bossPullLoop() {
         if (!isFighting) return;
 
         if (!bossStunned) {
             let finalBossPower = currentBoss.bossPower * bossWeakMultiplier;
-            // Boss liên tục kéo vạch về phía bên TRÁI (0%)
             tugPosition -= finalBossPower; 
         }
 
-        // Cập nhật UI vạch kẻ
         document.getElementById('tug-line').style.left = tugPosition + "%";
 
-        // Kiểm tra điều kiện thắng/thua lập tức
+        // BIẾN ĐỔI MÀU SẮC ĐỘNG THEO VỊ TRÍ (COOL VISUAL)
+        // Lệch về 0% (Bên trái): Đỏ đậm nguy hiểm. Lệch về 100% (Bên phải): Xanh lam thắng thế.
+        let r = Math.floor((100 - tugPosition) * 4.5); 
+        let g = Math.floor(tugPosition * 3);
+        let b = Math.floor(tugPosition * 4.5);
+        
+        // Giới hạn giải màu hợp lý tránh chói mắt
+        r = Math.min(200, Math.max(30, r));
+        g = Math.min(180, Math.max(20, g));
+        b = Math.min(220, Math.max(20, b));
+
+        let bossBox = document.getElementById('boss-area');
+        let pullBtn = document.getElementById('pull-btn');
+        
+        bossBox.style.background = `rgba(${r}, ${g / 3}, ${b / 3}, 0.2)`;
+        bossBox.style.borderColor = `rgb(${r}, ${g}, ${b})`;
+        pullBtn.style.background = `linear-gradient(135deg, rgb(${r},${g},${b}), rgb(${r-20},${g-20},${b-20}))`;
+        pullBtn.style.boxShadow = `0 5px 15px rgba(${r}, ${g}, ${b}, 0.4)`;
+
         if (tugPosition <= 0) {
-            endFight(false); // Vạch chạm đỉnh bên trái -> Boss kéo sổng mất cá
+            endFight(false); 
         } else if (tugPosition >= 100) {
-            endFight(true);  // Vạch chạm đỉnh bên phải -> Bạn thu cần thành công!
+            endFight(true);  
         } else {
             loopId = requestAnimationFrame(bossPullLoop);
         }
     }
 
-    // --- NGƯỜI CHƠI BẤM CLICK ĐỂ KÉO CẦN ---
     function playerPull() {
         if (!isFighting) return;
-        
         let currentRod = game.rods[game.rodIndex];
-        // Mỗi cú click đẩy vạch về phía bên PHẢI (100%)
         tugPosition += currentRod.clickPower; 
-        
         if (tugPosition > 100) tugPosition = 100;
         document.getElementById('tug-line').style.left = tugPosition + "%";
     }
 
-    // --- KẾT THÚC TRẬN ĐẤU ---
     function endFight(win) {
         isFighting = false;
         clearInterval(timerId);
@@ -337,31 +409,29 @@
         if (win) {
             game.linhThach += currentBoss.reward;
             game.tongCan += currentBoss.weight;
-            let alertMsg = `🎉 THÀNH CÔNG! Bạn đã dòng và kéo rách mang ${currentBoss.name}, thu về ${currentBoss.weight} Cân!\n`;
+            let alertMsg = `🎉 THÀNH CÔNG! Bạn đã dòng và kéo thành công ${currentBoss.name}, thu về ${currentBoss.weight} Cân!\n`;
             
-            // XỬ LÝ RỚT TUYỆT HỌC KỲ HIẾM (1% - 5%)
             if (currentBoss.dropId && !game.skills[currentBoss.dropId].unlocked) {
                 if (Math.random() < currentBoss.dropChance) {
                     game.skills[currentBoss.dropId].unlocked = true;
-                    alertMsg += `\n🌟 ĐẠI KỲ NGỘ: Thiên địa cảm ứng! Bạn đã lĩnh ngộ bí kíp cổ cổ độc bản [${game.skills[currentBoss.dropId].name}] rớt ra từ Boss!`;
+                    alertMsg += `\n🌟 ĐẠI KỲ NGỘ: Bạn đã ngộ được tuyệt học [${game.skills[currentBoss.dropId].name}] độc nhất vô nhị từ Boss rơi ra!`;
                 }
             }
             alert(alertMsg);
         } else {
-            alert(`💥 ĐỨT DÂY! ${currentBoss.name} sức quá khỏe đã kéo phăng lưỡi câu chạy mất!`);
+            alert(`💥 ĐỨT DÂY! Ngư cụ không chịu nổi lực sổng, Boss đã lôi phăng lưỡi câu biến mất!`);
         }
         updateIdleUI();
     }
 
-    // --- HIỆU ỨNG TÁC ĐỘNG ĐẨY VẠCH CỦA KỸ NĂNG ---
     function useSkill(id) {
         if (!isFighting || !game.skills[id].unlocked || skillsOnCooldown[id]) return;
 
-        if (id === 14) { // Huyết Hải
+        if (id === 14) { 
             if (timeLeft <= 5) { alert("Không đủ thời gian hiến tế!"); return; }
             timeLeft -= 5;
             document.getElementById('time-left').innerText = timeLeft;
-            tugPosition += 30; // Đẩy mạnh 30% vạch tiến về phía thắng
+            tugPosition += 30; 
         } 
         else if (id === 1) tugPosition += 3;
         else if (id === 2) { bossWeakMultiplier = 0.5; setTimeout(() => { bossWeakMultiplier = 1; }, 3000); }
@@ -376,12 +446,10 @@
         else if (id === 11) tugPosition += 15;
         else if (id === 12) { bossStunned = true; setTimeout(() => { bossStunned = false; }, 5000); }
         else if (id === 13) tugPosition += 20;
-        
-        // 4 chiêu Tuyệt học tối cao rơi từ Boss
-        else if (id === 15) { tugPosition += 15; bossStunned = true; setTimeout(() => { bossStunned = false; }, 2000); } // Long Ngâm
-        else if (id === 16) { bossWeakMultiplier = 0.2; setTimeout(() => { bossWeakMultiplier = 1; }, 6000); }        // Quy Tức (giảm 80% lực boss)
-        else if (id === 17) tugPosition += 25;                                                                        // Kình Thôn
-        else if (id === 18) { tugPosition += 35; timeLeft += 5; document.getElementById('time-left').innerText = timeLeft; } // Tường Vân
+        else if (id === 15) { tugPosition += 15; bossStunned = true; setTimeout(() => { bossStunned = false; }, 2000); } 
+        else if (id === 16) { bossWeakMultiplier = 0.2; setTimeout(() => { bossWeakMultiplier = 1; }, 6000); }        
+        else if (id === 17) tugPosition += 25;                                                                        
+        else if (id === 18) { tugPosition += 35; timeLeft += 5; document.getElementById('time-left').innerText = timeLeft; } 
 
         skillsOnCooldown[id] = true;
         let btn = document.getElementById(`skill-${id}`);
@@ -410,13 +478,21 @@
         document.getElementById('linh-thach').innerText = Math.floor(game.linhThach);
         document.getElementById('tong-can').innerText = Math.floor(game.tongCan);
         
+        let upgradeBtn = document.getElementById('buy-rod-btn');
         if (game.rodIndex < game.rods.length - 1) {
             let nextRod = game.rods[game.rodIndex + 1];
             document.getElementById('rod-name').innerText = nextRod.name;
             document.getElementById('rod-cost').innerText = nextRod.cost;
+            
+            // FIX: Nút rèn cần sẽ chủ động vô hiệu hóa nếu thiếu tiền mặt
+            if(game.linhThach < nextRod.cost) {
+                upgradeBtn.disabled = true;
+            } else {
+                upgradeBtn.disabled = false;
+            }
         } else {
-            document.getElementById('buy-rod-btn').innerText = "Cần Câu Đạt Cảnh Giới Tối Cao";
-            document.getElementById('buy-rod-btn').disabled = true;
+            upgradeBtn.innerText = "Cần Câu Đạt Cảnh Giới Tối Cao";
+            upgradeBtn.disabled = true;
         }
 
         renderSkillsUI();
