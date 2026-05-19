@@ -49,7 +49,6 @@
             display: flex;
         }
         
-        /* UPDATED: Added transitions and overflow handling for dynamic resizing */
         .side-boss { 
             width: 50%; height: 100%; background: rgba(214, 40, 40, 0.6); 
             text-align: left; padding-left: 10px; line-height: 35px; font-size: 12px; 
@@ -219,7 +218,6 @@
         }
     };
 
-    // BALANCING FIX: Boss base power heavily nerfed so humans can actually compete.
     const bossList = [
         { name: "Cá Chép Tinh", bossPower: 0.10, reward: 500, weight: 600, dropId: 15, dropChance: 0.05 },     
         { name: "Thạch Quy Ngàn Cân", bossPower: 0.20, reward: 2000, weight: 2500, dropId: 16, dropChance: 0.03 }, 
@@ -324,20 +322,15 @@
         }
     }
 
-    // UPDATED FUNCTION: Handles updating the line AND the dynamic background bars
     function updateTugUI() {
-        // Clamp the value just in case
         if (tugPosition < 0) tugPosition = 0;
         if (tugPosition > 100) tugPosition = 100;
         
-        // Move the center line
         document.getElementById('tug-line').style.left = tugPosition + "%";
         
-        // Dynamically adjust the width of the Red (Boss) and Blue (Player) bars
         document.getElementById('boss-bar').style.width = tugPosition + "%";
         document.getElementById('player-bar').style.width = (100 - tugPosition) + "%";
 
-        // Dynamic gradient/color shifting for the rest of the UI
         let r = Math.floor((100 - tugPosition) * 4.5); 
         let g = Math.floor(tugPosition * 3);
         let b = Math.floor(tugPosition * 4.5);
@@ -395,10 +388,11 @@
 
         updateTugUI();
 
-        if (tugPosition <= 0) {
-            endFight(false); 
-        } else if (tugPosition >= 100) {
-            endFight(true);  
+        // Cập nhật: Auto-win / Auto-lose tại mốc 5% và 95%
+        if (tugPosition <= 5) {
+            endFight(false); // Vạch dưới 5%, Boss win
+        } else if (tugPosition >= 95) {
+            endFight(true);  // Vạch trên 95%, Bạn win
         } else {
             loopId = requestAnimationFrame(bossPullLoop);
         }
